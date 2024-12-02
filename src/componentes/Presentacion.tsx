@@ -56,6 +56,27 @@ const slides = [
 
 const Presentation = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutos en segundos
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (timeLeft > 0 && !isPaused) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0) {
+      // Opcional: Acciones cuando el tiempo termine
+      alert('¡Tiempo terminado!');
+    }
+  }, [timeLeft, isPaused]);
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const nextSlide = () => {
     setCurrentSlide(current => 
@@ -82,45 +103,47 @@ const Presentation = () => {
     };
   }, []);
 
-  
-// src/componentes/Presentacion.tsx
-// ... (mantén el código existente hasta el return)
-
-return (
-  <div className="presentation">
-    <div className="slides-container">
-      {slides.map((slide, index) => (
-        <div
-          key={index}
-          className={`slide ${
-            index === currentSlide
-              ? 'active'
-              : index < currentSlide
-              ? 'previous'
-              : ''
-          }`}
+  return (
+    <div className="presentation">
+      <div className="timer">
+        <button 
+          onClick={() => setIsPaused(!isPaused)}
+          className={`timer-button ${isPaused ? 'paused' : ''}`}
         >
-          <h2>{slide.title}</h2>
-          <p>{slide.body}</p>
-          <img src={slide.image} alt={slide.title} />
-        </div>
-      ))}
+          {formatTime(timeLeft)}
+        </button>
+      </div>
+
+      <div className="slides-container">
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`slide ${
+              index === currentSlide
+                ? 'active'
+                : index < currentSlide
+                ? 'previous'
+                : ''
+            }`}
+          >
+            <h2>{slide.title}</h2>
+            <p>{slide.body}</p>
+            <img src={slide.image} alt={slide.title} />
+          </div>
+        ))}
+      </div>
+      
+      <div className="controls">
+        <button onClick={prevSlide} disabled={currentSlide === 0}>
+          ← Anterior
+        </button>
+        <span>{currentSlide + 1} / {slides.length}</span>
+        <button onClick={nextSlide} disabled={currentSlide === slides.length - 1}>
+          Siguiente →
+        </button>
+      </div>
     </div>
-    
-    <div className="controls">
-      <button onClick={prevSlide} disabled={currentSlide === 0}>
-        ← Anterior
-      </button>
-      <span>{currentSlide + 1} / {slides.length}</span>
-      <button onClick={nextSlide} disabled={currentSlide === slides.length - 1}>
-        Siguiente →
-      </button>
-    </div>
-  </div>
-);
-
-
-
+  );
 };
 
 export default Presentation;
